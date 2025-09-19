@@ -1,2 +1,531 @@
-<!DOCTYPE html><html><head><meta charset='utf-8'><title>ETF Dashboard</title></head>
-    <body><h1>ETF Dashboard</h1><p>Original file missing in session. Please regenerate if needed.</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Investment Strategy & ETF Basket Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#111833;
+      --panel-2:#0e1530;
+      --text:#e8ebf4;
+      --muted:#99a5c2;
+      --accent:#4dc3ff;
+      --accent-2:#7bf1a8;
+      --warn:#ffb84d;
+      --danger:#ff6b6b;
+      --good:#31d0aa;
+      --card:#0f1530;
+      --divider: rgba(255,255,255,0.08);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:linear-gradient(180deg, #090e1c, #0b1020);
+      color:var(--text); font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji", "Segoe UI Symbol";
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+    a{color:var(--accent); text-decoration:none}
+    header{
+      position:sticky; top:0; z-index:50;
+      backdrop-filter: blur(8px);
+      background: linear-gradient(180deg, rgba(11,16,32,0.9), rgba(11,16,32,0.65));
+      border-bottom:1px solid var(--divider);
+    }
+    .container{max-width:1200px; margin:0 auto; padding:20px}
+    .title{display:flex; align-items:center; gap:12px}
+    .logo{
+      width:34px; height:34px; border-radius:8px; display:grid; place-items:center;
+      background: radial-gradient(100% 100% at 0% 0%, #36bffa 0%, #7bf1a8 100%);
+      color:#081221; font-weight:800;
+    }
+    .grid{
+      display:grid; grid-template-columns: 320px 1fr; gap:20px;
+    }
+    @media (max-width: 1000px){
+      .grid{grid-template-columns:1fr}
+    }
+    .panel{
+      background:linear-gradient(180deg, var(--panel), var(--panel-2));
+      border:1px solid var(--divider);
+      border-radius:16px; padding:16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+    .section{
+      margin-bottom:20px; border:1px solid var(--divider);
+      border-radius:12px; overflow:hidden;
+      background: rgba(255,255,255,0.02);
+    }
+    .section h3{
+      margin:0; padding:12px 14px; background:rgba(255,255,255,0.03);
+      border-bottom:1px solid var(--divider);
+      font-size: 14px; letter-spacing:0.02em; text-transform:uppercase; color:#c9d3ef;
+    }
+    .etf-list{padding:8px 0}
+    .etf-item{
+      display:grid; grid-template-columns: 92px 1fr; gap:8px;
+      align-items:center; padding:8px 12px; border-bottom:1px dashed var(--divider);
+    }
+    .etf-item:last-child{border-bottom:none}
+    .pill{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:6px 10px; font-weight:700; font-size:13px;
+      border-radius:99px; background:#0b162e; color:#d9e6ff; border:1px solid var(--divider);
+    }
+    .muted{color:var(--muted); font-size:12px}
+    .dash{
+      display:grid; gap:16px;
+    }
+    .controls{
+      display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:8px;
+    }
+    .controls .btn{
+      background:#0c1732; border:1px solid var(--divider);
+      color:#cfe0ff; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:600; font-size:13px;
+    }
+    .controls .btn.active{ background:#0e1c3d; outline:2px solid var(--accent); color:#fff; }
+    .basket-grid{
+      display:grid; grid-template-columns: repeat(12, 1fr);
+      gap:12px;
+    }
+    @media (max-width: 1200px){ .basket-grid{grid-template-columns: repeat(6, 1fr);} }
+    @media (max-width: 780px){ .basket-grid{grid-template-columns: repeat(2, 1fr);} }
+    .basket{
+      grid-column: span 6;
+      background:linear-gradient(180deg, #0c132b, #0a1227);
+      border:1px solid var(--divider); border-radius:16px; padding:12px; position:relative;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    }
+    .basket h4{margin:2px 0 10px 0}
+    .row{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
+    .metric{
+      margin-left:auto; display:flex; align-items:center; gap:6px; font-weight:700; font-size: 18px;
+    }
+    .metric .chg.up{color:var(--good)} .metric .chg.down{color:var(--danger)}
+    canvas.spark{ width:100%; height:54px; display:block; margin:8px 0 2px; }
+    .small{font-size:12px; color:var(--muted)}
+    .chips{display:flex; gap:6px; flex-wrap:wrap; margin-top:6px}
+    .chip{padding:6px 8px; border:1px solid var(--divider); border-radius:8px; background:#0b162e; color:#cfe0ff; font-size:12px}
+    .footnote{ font-size:12px; color:#a8b3cf }
+    .warning{ color:var(--warn) }
+    .legend{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:8px 0}
+    .legend span{font-size:12px; color:#a9b4cf}
+    .divider{height:1px; background:var(--divider); margin:10px 0}
+    .note{ font-size:12px; color:#93a0c5; padding:8px 12px; border:1px solid var(--divider); background:#0a1531; border-radius:10px }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="title">
+        <div class="logo">Δ</div>
+        <div>
+          <div style="font-weight:800; font-size:18px;">Investment Strategy & ETF Baskets</div>
+          <div style="color:var(--muted); font-size:13px">Prepared for Financial Advisor — Retirement Portfolio Context</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top:18px">
+    <div class="grid">
+      <aside class="panel">
+        <h2 style="margin:0 0 8px 0; font-size:16px">ETF Lineup by Strategy</h2>
+        <div class="note">
+          ETFs and sections below reflect the strategy groupings you provided.
+          <br/>Some tickers may lack public chart data; dashboard excludes those from averages.
+        </div>
+        <div id="sections"></div>
+      </aside>
+
+      <section class="panel">
+        <div class="dash">
+          <div class="row">
+            <h2 style="margin:0; font-size:18px">Basket Performance Dashboard</h2>
+          </div>
+          <div class="controls" id="periodControls">
+            <button class="btn active" data-period="1D">1D</button>
+            <button class="btn" data-period="1W">1W</button>
+            <button class="btn" data-period="1M">1M</button>
+            <button class="btn" data-period="3M">3M</button>
+            <button class="btn" data-period="YTD">YTD</button>
+            <button class="btn" data-period="1Y">1Y</button>
+          </div>
+
+          <div class="legend">
+            <span>Equal-weighted performance for each basket over the selected period.</span>
+          </div>
+          <div class="basket-grid" id="basketGrid"></div>
+
+          <div class="divider"></div>
+          <div class="footnote">
+            Data source: Yahoo Finance chart endpoint (public). Calculations are approximate and for planning only. This page performs no order execution and is not investment advice.
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+  // ====== Strategy baskets (tickers can be edited in-place) ======
+  const BASKETS = [
+    {
+      name: "Bitcoin (BTC) & Bitcoin ETFs",
+      key: "bitcoin",
+      members: [
+        {t: "IBIT", n: "iShares Bitcoin Trust", note: "Spot Bitcoin ETF from BlackRock"},
+        {t: "BITO", n: "ProShares Bitcoin Strategy ETF", note: "Bitcoin futures contracts"},
+        {t: "BITX", n: "2x Bitcoin Strategy ETF", note: "2x daily return of Bitcoin (leveraged)"},
+        {t: "BITI", n: "ProShares Short Bitcoin ETF", note: "-1x daily return of Bitcoin (inverse)"},
+        {t: "SBIT", n: "ProShares UltraShort Bitcoin ETF", note: "-2x daily return of Bitcoin (inverse)"},
+      ]
+    },
+    {
+      name: "Solana (SOL)",
+      key: "solana",
+      members: [
+        {t: "SOLZ", n: "Solana ETF", note: "1x daily exposure to Solana futures"},
+        {t: "SOLT", n: "2x Solana ETF", note: "2x daily exposure to Solana futures"},
+      ]
+    },
+    {
+      name: "Ethereum (ETH)",
+      key: "ethereum",
+      members: [
+        {t: "ETHA", n: "iShares Ethereum Trust ETF", note: "ETH"},
+        {t: "FETH", n: "Fidelity Ethereum Fund ETF", note: "ETH"},
+      ]
+    },
+    {
+      name: "Disruptive AI Companies",
+      key: "ai",
+      members: [
+        {t: "BOTZ", n: "Global X Robotics & AI ETF", note: "Robotics and automation firms"},
+        {t: "AIQ", n: "Global X AI & Technology ETF", note: "AI-enabling and applying companies"},
+        {t: "WTAI", n: "WisdomTree AI & Innovation ETF", note: "AI hardware/software and adoption firms"},
+      ]
+    },
+    {
+      name: "Crypto / Blockchain (General)",
+      key: "crypto",
+      members: [
+        {t: "BITQ", n: "Bitwise Crypto Industry Innovators", note: ""},
+        {t: "BLOK", n: "Amplify Transformational Data Sharing ETF", note: ""},
+        {t: "BKCH", n: "Global X Blockchain ETF", note: ""},
+        {t: "BITW", n: "Bitwise Crypto Industry Innovators ETF", note: ""},
+        {t: "FDIG", n: "Fidelity Crypto Industry and Digital Payments", note: ""},
+      ]
+    },
+    {
+      name: "Water Resources & Desalination",
+      key: "water",
+      members: [
+        {t: "AQWA", n: "Global X Clean Water ETF", note: "Companies improving global water access"},
+        {t: "PHO", n: "Invesco Water Resources ETF", note: "U.S.-based water infrastructure"},
+        {t: "CGW", n: "Invesco S&P Global Water Index ETF", note: "Global water utilities and tech firms"},
+      ]
+    },
+    {
+      name: "Nuclear Technologies (Fusion/Fission/SMRs)",
+      key: "nuclear",
+      members: [
+        {t: "URA", n: "Global X Uranium ETF", note: "Uranium mining & nuclear firms"},
+        {t: "URNM", n: "Sprott Uranium Miners ETF", note: "Uranium miners & nuclear components"},
+        {t: "NLR", n: "VanEck Uranium & Nuclear ETF", note: "Nuclear power generation & reactors"},
+        {t: "NUCL", n: "iShares Nuclear & Energy ETF", note: "Broader nuclear energy value chain"},
+      ]
+    },
+    {
+      name: "Electrification (EVs, Grid, Charging)",
+      key: "electrification",
+      members: [
+        {t: "LIT", n: "Global X Lithium & Battery Tech ETF", note: "Lithium & battery supply chain"},
+        {t: "DRIV", n: "Global X Autonomous & EVs ETF", note: "Global EV & autonomy tech"},
+        {t: "IDRV", n: "iShares Self-Driving EV & Tech ETF", note: "Self-driving, EV & enabling tech"},
+        {t: "VOLT", n: "Tema Electrification ETF", note: "Electrification across sectors"},
+      ]
+    }
+  ];
+
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+  function fmtPct(x){
+    if (x === null || isNaN(x)) return "—";
+    const sign = x>0 ? "+" : "";
+    return sign + (x*100).toFixed(2) + "%";
+  }
+
+  function drawSpark(canvas, values){
+    const ctx = canvas.getContext('2d');
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (canvas.width !== w) canvas.width = w;
+    if (canvas.height !== h) canvas.height = h;
+    ctx.clearRect(0,0,w,h);
+
+    if (!values || values.length < 2){ 
+      ctx.fillStyle = "rgba(255,255,255,0.3)";
+      ctx.fillText("no data", 8, h/2);
+      return;
+    }
+
+    const min = Math.min(...values), max = Math.max(...values);
+    const pad = 4;
+    const scaleX = (w - pad*2) / (values.length - 1);
+    const scaleY = (h - pad*2) / (max - min || 1);
+
+    ctx.lineWidth = 2;
+    const grad = ctx.createLinearGradient(0,0,w,0);
+    grad.addColorStop(0, "#4dc3ff");
+    grad.addColorStop(1, "#7bf1a8");
+    ctx.strokeStyle = grad;
+
+    ctx.beginPath();
+    values.forEach((v, i) => {
+      const x = pad + i*scaleX;
+      const y = h - pad - (v - min)*scaleY;
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+  }
+
+  const PERIODS = {
+    "1D": {days: 1},
+    "1W": {days: 7},
+    "1M": {days: 31},
+    "3M": {days: 93},
+    "YTD": {ytd: true},
+    "1Y": {days: 366}
+  };
+
+  async function fetchYahooSeries(symbol, range="1y", interval="1d"){
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=${interval}`;
+    try{
+      const res = await fetch(url, {cache: "no-store"});
+      if (!res.ok) throw new Error(res.status + " " + res.statusText);
+      const json = await res.json();
+      const r = json?.chart?.result?.[0];
+      if (!r || !r.indicators?.quote?.[0]?.close) throw new Error("bad payload");
+      const ts = r.timestamp || [];
+      const closes = r.indicators.quote[0].close || [];
+      const series = [];
+      for (let i=0;i<ts.length;i++){
+        const c = closes[i];
+        if (c!=null) series.push({t: ts[i]*1000, c});
+      }
+      return series;
+    } catch(e){
+      console.warn("Yahoo fetch failed for", symbol, e);
+      return null;
+    }
+  }
+
+  function pickStartIndex(series, periodKey){
+    if (!series || series.length < 2) return null;
+    const now = series[series.length-1].t;
+    if (PERIODS[periodKey]?.ytd){
+      const d = new Date(now);
+      const y = d.getFullYear();
+      const jan1 = new Date(y,0,1).getTime();
+      let idx = series.findIndex(p => p.t >= jan1);
+      if (idx < 0) idx = 0;
+      if (idx >= series.length-1) idx = series.length-2;
+      return idx;
+    } else {
+      const backMs = (PERIODS[periodKey].days || 1) * 24*3600*1000;
+      const target = now - backMs;
+      let idx = series.findIndex(p => p.t >= target);
+      if (idx < 0) idx = 0;
+      if (idx >= series.length-1) idx = series.length-2;
+      return idx;
+    }
+  }
+
+  function pctChange(a,b){ return (b - a) / a; }
+
+  function computeBasketChange(seriesMap, members, periodKey){
+    let sum = 0, count = 0;
+    const memberBreakdown = [];
+    for (const m of members){
+      const s = seriesMap[m.t];
+      if (!s || s.length<2){ 
+        memberBreakdown.push({t: m.t, chg:null});
+        continue;
+      }
+      const startIdx = pickStartIndex(s, periodKey);
+      if (startIdx==null){ memberBreakdown.push({t:m.t, chg:null}); continue; }
+      const chg = pctChange(s[startIdx].c, s[s.length-1].c);
+      if (isFinite(chg)){ sum += chg; count++; }
+      memberBreakdown.push({t: m.t, chg: isFinite(chg) ? chg : null});
+    }
+    const avg = count>0 ? sum / count : null;
+    return {avg, count, total: members.length, memberBreakdown};
+  }
+
+  function computeBasketSpark(seriesMap, members, lookbackDays=70){
+    const allSeries = members.map(m => seriesMap[m.t]).filter(s => s && s.length>0);
+    if (allSeries.length===0) return null;
+
+    const tsSet = new Set(allSeries[0].map(p => p.t));
+    for (let i=1;i<allSeries.length;i++){
+      const s = new Set(allSeries[i].map(p => p.t));
+      for (const t of Array.from(tsSet)){ if (!s.has(t)) tsSet.delete(t); }
+    }
+    let stamps = Array.from(tsSet).sort((a,b)=>a-b);
+    if (stamps.length<5){
+      const u = new Set();
+      allSeries.forEach(s => s.forEach(p => u.add(p.t)));
+      stamps = Array.from(u).sort((a,b)=>a-b);
+    }
+    const cutoff = Date.now() - lookbackDays*24*3600*1000;
+    stamps = stamps.filter(t => t >= cutoff);
+    if (stamps.length<5) return null;
+
+    const idxVals = [];
+    let base = null;
+    for (let i=0;i<stamps.length;i++){
+      const t = stamps[i];
+      let sum=0, count=0;
+      for (const s of allSeries){
+        const pt = s.find(p => p.t===t);
+        if (pt){ sum += pt.c; count++; }
+      }
+      if (count===0) continue;
+      const avgClose = sum / count;
+      if (base===null) base = avgClose;
+      idxVals.push(avgClose / base);
+    }
+    if (idxVals.length<2) return null;
+    return idxVals;
+  }
+
+  function renderSections(){
+    const root = document.getElementById("sections");
+    root.innerHTML = "";
+    BASKETS.forEach(b => {
+      const sec = document.createElement("div");
+      sec.className = "section";
+      const h = document.createElement("h3");
+      h.textContent = b.name;
+      sec.appendChild(h);
+      const list = document.createElement("div");
+      list.className = "etf-list";
+      b.members.forEach(m => {
+        const row = document.createElement("div");
+        row.className = "etf-item";
+        const code = document.createElement("div");
+        code.innerHTML = `<span class="pill">${m.t}</span>`;
+        const meta = document.createElement("div");
+        const nm = m.n ? `<div style="font-weight:600">${m.n}</div>` : `<div style="font-weight:600; color:#d1dcff">${m.t}</div>`;
+        const nt = m.note ? `<div class="muted">${m.note}</div>` : "";
+        meta.innerHTML = nm + nt;
+        row.appendChild(code);
+        row.appendChild(meta);
+        list.appendChild(row);
+      });
+      sec.appendChild(list);
+      root.appendChild(sec);
+    });
+  }
+
+  let SERIES = {}; // symbol -> [{t,c}, ...]
+  let CURRENT_PERIOD = "1D";
+
+  function renderDashboard(){
+    const grid = document.getElementById("basketGrid");
+    grid.innerHTML = "";
+    BASKETS.forEach(b => {
+      const box = document.createElement("div");
+      box.className = "basket";
+      const hdr = document.createElement("div");
+      hdr.className = "row";
+      const title = document.createElement("h4");
+      title.textContent = b.name;
+      const metric = document.createElement("div");
+      metric.className = "metric";
+      metric.innerHTML = `<span class="small" style="color:#9fb0d6">Avg</span><span class="chg">—</span>`;
+      hdr.appendChild(title);
+      hdr.appendChild(metric);
+      box.appendChild(hdr);
+
+      const canvas = document.createElement("canvas");
+      canvas.className = "spark";
+      box.appendChild(canvas);
+
+      const chipRow = document.createElement("div");
+      chipRow.className = "chips";
+      chipRow.innerHTML = `<span class="chip small">Data loaded: <span class="dload">0</span>/<span class="dtotal">${b.members.length}</span></span>`;
+      b.members.forEach(m => {
+        const span = document.createElement("span");
+        span.className = "chip";
+        span.innerHTML = `<strong>${m.t}</strong>: <span class="v">—</span>`;
+        span.dataset.t = m.t;
+        chipRow.appendChild(span);
+      });
+      box.appendChild(chipRow);
+
+      grid.appendChild(box);
+
+      const {avg, count, total, memberBreakdown} = computeBasketChange(SERIES, b.members, CURRENT_PERIOD);
+      const avgEl = metric.querySelector(".chg");
+      if (avg===null){
+        avgEl.textContent = "—";
+        avgEl.className = "chg";
+      } else {
+        avgEl.textContent = fmtPct(avg);
+        avgEl.className = "chg " + (avg>=0 ? "up" : "down");
+      }
+      chipRow.querySelector(".dload").textContent = count;
+
+      memberBreakdown.forEach(mb => {
+        const chip = Array.from(chipRow.children).find(c => c.dataset?.t === mb.t);
+        if (chip){
+          const vEl = chip.querySelector(".v");
+          if (mb.chg===null){ vEl.textContent = "—"; vEl.style.color = "#a4b0c8"; }
+          else{
+            vEl.textContent = fmtPct(mb.chg);
+            vEl.style.color = mb.chg>=0 ? "var(--good)" : "var(--danger)";
+          }
+        }
+      });
+
+      const sparkVals = computeBasketSpark(SERIES, b.members, 70);
+      if (sparkVals){
+        drawSpark(canvas, sparkVals);
+      } else {
+        drawSpark(canvas, [1,1,1,1,1]);
+      }
+    });
+  }
+
+  async function loadAll(){
+    renderSections();
+    const allTickers = Array.from(new Set(BASKETS.flatMap(b => b.members.map(m => m.t))));
+    for (const t of allTickers){
+      let s = await fetchYahooSeries(t, "1y", "1d");
+      SERIES[t] = s;
+    }
+    renderDashboard();
+  }
+
+  function bindControls(){
+    const bar = document.getElementById("periodControls");
+    bar.addEventListener("click", (e)=>{
+      const btn = e.target.closest("button.btn");
+      if (!btn) return;
+      $$(".controls .btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      CURRENT_PERIOD = btn.dataset.period;
+      renderDashboard();
+    });
+  }
+
+  bindControls();
+  loadAll();
+  </script>
+</body>
+</html>
