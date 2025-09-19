@@ -37,7 +37,7 @@ export function showBanner(msg, kind='info'){
   if (kind!=='error') setTimeout(()=>{ b.classList.remove('show'); }, 6000);
 }
 
-const FMP_BASE = 'https://financialmodelingprep.com/stable';
+const FMP_BASE = 'https://financialmodelingprep.com/api/v3';
 
 /* Generic GET with EOD caching */
 async function fmpGET(url, {ttlMs=0, budgetCost=1}={}){
@@ -62,8 +62,9 @@ export async function fmpHistoricalSingle(symbol, useFull=false){
   const now=new Date(); // Cache roughly until next market morning
   const tomorrow=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,6,0,0);
   const ttl=Math.max(1,tomorrow.getTime()-now.getTime());
-  const path = useFull ? '/historical-price-eod/full' : '/historical-price-eod/light';
-  const url = `${FMP_BASE}${path}?symbol=${encodeURIComponent(symbol)}`;
+  const params = new URLSearchParams({serietype:'line'});
+  if(!useFull) params.set('timeseries','400');
+  const url = `${FMP_BASE}/historical-price-full/${encodeURIComponent(symbol)}?${params.toString()}`;
   const resp=await fmpGET(url,{ttlMs:ttl,budgetCost:1});
   if(resp.error){
     if(!useFull){ // try FULL once
@@ -71,7 +72,9 @@ export async function fmpHistoricalSingle(symbol, useFull=false){
     }
     return null;
   }
-  const arr = resp.json || [];
+  const arr = Array.isArray(resp.json)
+    ? resp.json
+    : (Array.isArray(resp.json?.historical) ? resp.json.historical : []);
   return arr
     .filter(p=>p && p.date && (p.close!=null))
     .map(p=>({t: new Date(p.date).getTime(), c: Number(p.close)}))
@@ -94,12 +97,14 @@ export function usageText(){ const d=Number(localStorage.getItem('FMP_REQS_'+(ne
 export async function pingFMP(){
   const cfg=getCfg();
   if(!cfg.apiKey) return {ok:false, reason:'no-key'};
-  const url = `${FMP_BASE}/historical-price-eod/light?symbol=AAPL&apikey=${encodeURIComponent(cfg.apiKey)}`;
+  const params=new URLSearchParams({timeseries:'5',serietype:'line',apikey:cfg.apiKey});
+  const url = `${FMP_BASE}/historical-price-full/AAPL?${params.toString()}`;
   try{
     const res = await fetch(url, {cache:'no-store'});
     if(!res.ok) return {ok:false, reason:'HTTP '+res.status};
     const j = await res.json();
-    if (Array.isArray(j) && j.length && j[0]?.date) return {ok:true};
+    const series = Array.isArray(j) ? j : (Array.isArray(j?.historical) ? j.historical : []);
+    if (series.length && series[0]?.date) return {ok:true};
     return {ok:false, reason:'unexpected-response'};
   }catch(e){
     return {ok:false, reason:'network'};
