@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ETF Basket Dashboard (EOD‑only)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/style.css">
+</head>
+<body>
+  
+<header>
+  <div class="container">
+    <div class="nav">
+      <div class="brand">
+        <div class="logo">Δ</div>
+        <div>
+          <div class="title">Investment Strategy & ETF Baskets</div>
+          <div class="sub">Prepared for Financial Advisor — Retirement Portfolio</div>
+        </div>
+      </div>
+      <div class="menu">
+        <a class="navlink" href="index.html">Dashboard</a>
+        <a class="navlink" href="etfs.html">ETF Catalogue</a>
+      </div>
+      <span class="usagechip" id="usage">FMP EOD 0/250</span>
+      <div class="settings">
+        <button id="refreshNow" class="btn" title="Check EOD now">Check EOD</button>
+        <button id="openSettings" class="iconbtn" title="Settings">⚙️</button>
+      </div>
+    </div>
+  </div>
+</header>
+<div class="banner" id="banner"></div>
+
+  <main class="main">
+    <section class="panel">
+      <div class="row">
+        <h2 style="margin:0; font-size:18px">Basket Performance — EOD</h2>
+      </div>
+      <div class="controls" id="periodControls">
+        <button class="btn" data-period="1W">1W</button>
+        <button class="btn active" data-period="1M">1M</button>
+        <button class="btn" data-period="3M">3M</button>
+        <button class="btn" data-period="YTD">YTD</button>
+        <button class="btn" data-period="1Y">1Y</button>
+        <button class="btn" data-period="3Y">3Y</button>
+      </div>
+      <div class="legend">
+        <span>Free FMP plan (EOD): up to 250 calls/day. We only request per‑symbol EOD once per market day and cache it; the “Check EOD” button reuses cache until the next day.</span>
+      </div>
+      <div class="basket-grid" id="basketGrid"></div>
+      <div class="divider"></div>
+      <div class="small">Source: Financial Modeling Prep (stable EOD endpoints). For planning only; not investment advice.</div>
+    </section>
+  </main>
+  
+<!-- Settings Modal -->
+<div class="modal" id="settingsModal">
+  <div class="shade"></div>
+  <div class="card">
+    <h3>FMP EOD‑Only Settings</h3>
+    <div class="row">
+      <label>FMP API Key</label>
+      <input id="apikey" placeholder="Paste FMP API key">
+    </div>
+    <div class="row">
+      <label>Series Cache TTL (hours)</label>
+      <input id="seriesTtlHours" type="number" min="1" step="1" value="24">
+    </div>
+    <div class="row">
+      <label>Daily Budget (requests)</label>
+      <input id="dailyBudget" type="number" min="1" step="1" value="250">
+    </div>
+    <div class="row">
+      <label>Re-check Interval (hours)</label>
+      <input id="checkIntervalHrs" type="number" min="1" step="1" value="6">
+    </div>
+    <div class="actions">
+      <button id="closeSettings" class="btn">Cancel</button>
+      <button id="saveSettings" class="btn">Save</button>
+    </div>
+    <div class="small" style="color:#9fb0da; margin-top:6px">
+      Mode: <strong>EOD only</strong>. No live quotes. Prices = last close; Δ1D computed from EOD vs prior day. Data from <code>/stable/historical-price-eod/light</code> (fallback to <code>/full</code>).
+    </div>
+  </div>
+</div>
+
+  <script type="module" src="./assets/dashboard.js"></script>
+</body>
+</html>
