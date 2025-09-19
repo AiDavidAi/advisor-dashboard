@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ETF Catalogue (FMP Stable)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/style.css">
+</head>
+<body>
+  
+<header>
+  <div class="container">
+    <div class="nav">
+      <div class="brand">
+        <div class="logo">Δ</div>
+        <div>
+          <div class="title">Investment Strategy & ETF Baskets</div>
+          <div class="sub">Prepared for Financial Advisor — Retirement Portfolio</div>
+        </div>
+      </div>
+      <div class="menu">
+        <a class="navlink" href="index.html">Dashboard</a>
+        <a class="navlink" href="etfs.html">ETF Catalogue</a>
+      </div>
+      <span class="usagechip" id="usage">FMP 0/250</span>
+      <div class="settings">
+        <button id="refreshNow" class="btn" title="Refresh quotes now">Refresh</button>
+        <button id="openSettings" class="iconbtn" title="Settings">⚙️</button>
+      </div>
+    </div>
+  </div>
+</header>
+<div class="banner" id="banner"></div>
+
+  <main class="main">
+    <div class="panel">
+      <div class="row"><h2 style="margin:0; font-size:18px">ETF Catalogue</h2></div>
+      <div class="searchbar">
+        <input id="search" placeholder="Filter by ticker or name…" />
+      </div>
+      <div id="sections"></div>
+    </div>
+  </main>
+  
+<!-- Settings Modal -->
+<div class="modal" id="settingsModal">
+  <div class="shade"></div>
+  <div class="card">
+    <h3>Data Settings (FMP “stable”)</h3>
+    <div class="row">
+      <label>FMP API Key</label>
+      <input id="apikey" placeholder="Paste FMP API key">
+    </div>
+    <div class="row">
+      <label>Auto Refresh (seconds)</label>
+      <input id="refreshMs" type="number" min="0" step="1" value="600">
+    </div>
+    <div class="row">
+      <label>Quotes Cache TTL (seconds)</label>
+      <input id="quotesTtlMs" type="number" min="0" step="1" value="600">
+    </div>
+    <div class="row">
+      <label>Series Cache TTL (hours)</label>
+      <input id="seriesTtlHours" type="number" min="1" step="1" value="24">
+    </div>
+    <div class="row">
+      <label>Daily Budget (requests)</label>
+      <input id="dailyBudget" type="number" min="1" step="1" value="250">
+    </div>
+    <div class="row">
+      <label>Use Intraday Series (5m)</label>
+      <input id="useIntraday" type="checkbox" disabled title="Off by default to save budget">
+    </div>
+    <div class="actions">
+      <button id="closeSettings" class="btn">Cancel</button>
+      <button id="saveSettings" class="btn">Save</button>
+    </div>
+    <div class="small" style="color:#9fb0da; margin-top:6px">
+      Notes: Batch quotes via <code>/stable/batch-quote</code>; per‑symbol EOD via <code>/stable/historical-price-eod/light</code> (falls back to <code>/full</code>). Content cached until next market day.
+    </div>
+  </div>
+</div>
+
+  <script type="module" src="./assets/etf-list.js"></script>
+</body>
+</html>
